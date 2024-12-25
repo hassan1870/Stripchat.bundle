@@ -25,9 +25,9 @@ DEFAULT_SORT    = 'trending'
 DEFAULT_TAG     = 'females'
 
 MAIN_LIST =     [
-                    ('Women',       '/tags/females'), 
+                    ('Women',       '/tags/females'),
                     ('Men',         '/tags/men'),
-                    ('Couples',     '/tags/couples'), 
+                    ('Couples',     '/tags/couples'),
                     ('Trans',       '/tags/trans')
                 ]
 
@@ -66,12 +66,12 @@ def MainMenu():
     for (title, url) in MAIN_LIST:
         if title == 'Couples':
             oc.add(DirectoryObject(
-                key     = Callback(SortList, title=title, url=url), 
+                key     = Callback(SortList, title=title, url=url),
                 title   = title
             ))
         else:
             oc.add(DirectoryObject(
-                key     = Callback(TagList, title=title, url=url), 
+                key     = Callback(TagList, title=title, url=url),
                 title   = title
             ))
 
@@ -114,7 +114,7 @@ def TagList(title, url):
             title   = '{} ({})'.format(title, total)
 
         oc.add(DirectoryObject(
-            key     = Callback(SortList, title=titleCrumbs, url=url), 
+            key     = Callback(SortList, title=titleCrumbs, url=url),
             title   = title
         ))
 
@@ -132,7 +132,7 @@ def SortList(title, url):
         titleCrumbs = '{} > {}'.format(titleParent, title)
 
         oc.add(DirectoryObject(
-            key     = Callback(CamList, title=titleCrumbs, url=url, tagAlias=tag, sort=sort), 
+            key     = Callback(CamList, title=titleCrumbs, url=url, tagAlias=tag, sort=sort),
             title   = 'Sort by {}'.format(title)
         ))
 
@@ -146,7 +146,7 @@ def CamList(title, url, page=1, tagAlias=DEFAULT_TAG, sort=DEFAULT_SORT):
     cr              = '\r' if Client.Product == 'Plex Web' else '\n'
 
     pageOffset      = 0 if page == 1 else (page - 1) * PAGESIZE
-     
+
     countriesJson   = json.loads(
                         Core.storage.load(Core.storage.abs_path(Core.storage.join_path(
                             Core.bundle_path,
@@ -155,7 +155,7 @@ def CamList(title, url, page=1, tagAlias=DEFAULT_TAG, sort=DEFAULT_SORT):
                             'countries.json'
                         )))
                       )
-    
+
     apiRequest      = API_MODELS.format(
                         limit       = PAGESIZE,
                         offset      = pageOffset,
@@ -165,14 +165,14 @@ def CamList(title, url, page=1, tagAlias=DEFAULT_TAG, sort=DEFAULT_SORT):
                       )
 
     Log.Debug('API Request: {}'.format(apiRequest))
-    
+
     metadataJson    = JSON.ObjectFromURL(apiRequest, encoding='utf-8')
 
     for metadataModel in metadataJson['models']:
         summary         = ''
         summaryStart    = ''
         summaryCountry  = ''
-        
+
         camId           = metadataModel['id']
         camServer       = metadataModel['broadcastServer']
         camThumb        = metadataModel['snapshotUrl']
@@ -182,23 +182,23 @@ def CamList(title, url, page=1, tagAlias=DEFAULT_TAG, sort=DEFAULT_SORT):
         camStart        = metadataModel['firstBroadcastTS']
         camUrl          = BASE_URL + '/' + camName + '?m=' + str(camId) + '&s=' + camServer
 
-        for metadataCountry in countriesJson['countries']:   
+        for metadataCountry in countriesJson['countries']:
             if metadataCountry['code'] == camCountry:
                 summaryCountry = metadataCountry['title']
                 break
-                
+
         if isinstance(camStart, (int, long)):
             summaryStart = datetime.datetime.fromtimestamp(int(camStart)).strftime('%m-%d-%Y')
-            
+
         if metadataModel['isNew'] == True:
             summary += 'NEW' + cr
 
         if len(summaryCountry) > 0:
             summary += summaryCountry + cr
-                
+
         if len(summaryStart) > 0:
             summary += 'Broadcasting since ' + summaryStart + cr
-            
+
         oc.add(VideoClipObject(
             url     = camUrl,
             title   = camName,
@@ -207,7 +207,7 @@ def CamList(title, url, page=1, tagAlias=DEFAULT_TAG, sort=DEFAULT_SORT):
             summary = summary if len(summary) > 0 else 'No summary',
             tagline = ''
         ))
-    
+
     if len(oc) > 0:
         if len(oc) >= PAGESIZE:
             oc.add(DirectoryObject(
